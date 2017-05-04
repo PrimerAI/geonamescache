@@ -1,4 +1,5 @@
 import csv
+import json
 import os
 from collections import defaultdict
 
@@ -13,26 +14,44 @@ def load_data():
     data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
     locations_by_name = defaultdict(dict)
     locations_by_id = {}
+    alt_names_by_id = _load_alt_names_if_possible(os.path.join(data_dir, 'alt_wiki_names.json'))
 
     countries_by_code = _load_country_data(
-        os.path.join(data_dir, 'countryInfo.txt'), locations_by_name, locations_by_id
+        os.path.join(data_dir, 'countryInfo.txt'), locations_by_name, locations_by_id,
+        alt_names_by_id
     )
     admin1_by_code = _load_admin1_data(
         os.path.join(data_dir, 'admin1Codes.txt'), locations_by_name, locations_by_id,
-        countries_by_code
+        alt_names_by_id, countries_by_code
     )
     admin2_by_code = _load_admin2_data(
         os.path.join(data_dir, 'admin2Codes.txt'), locations_by_name, locations_by_id,
-        countries_by_code, admin1_by_code
+        alt_names_by_id, countries_by_code, admin1_by_code
     )
     _load_city_data(
         os.path.join(data_dir, 'cities1000.txt'), locations_by_name, locations_by_id,
-        countries_by_code, admin1_by_code, admin2_by_code
+        alt_names_by_id, countries_by_code, admin1_by_code, admin2_by_code
     )
+    _add_fixed_alt_names(locations_by_name)
+
+    del locations_by_name['']
 
     return locations_by_name, locations_by_id
 
-def _load_country_data(filepath, locations_by_name, locations_by_id):
+def _load_alt_names_if_possible(filepath):
+    alt_names_by_id = defaultdict(list)
+    if not os.path.isfile(filepath):
+        return alt_names_by_id
+
+    with open(filepath) as alt_names_file:
+        alt_names_by_id_copy = json.load(alt_names_file)
+        for id_, alt_names in alt_names_by_id_copy.iteritems():
+            assert int(id_) not in alt_names_by_id
+            alt_names_by_id[int(id_)] = alt_names
+
+    return alt_names_by_id
+
+def _load_country_data(filepath, locations_by_name, locations_by_id, alt_names_by_id):
     countries_by_code = {}
 
     with open(filepath) as country_file:
@@ -54,7 +73,10 @@ def _load_country_data(filepath, locations_by_name, locations_by_id):
                 population=int(population),
             )
 
-            for name in set([standard_name] + get_alt_punc_names(standard_name)):
+            for name in set(
+                standardize_loc_name(alt_name) for alt_name in
+                [standard_name] + get_alt_punc_names(standard_name) + alt_names_by_id[geoname_id]
+            ):
                 locations_by_name[name][geoname_id] = data
             assert geoname_id not in locations_by_id
             locations_by_id[geoname_id] = data
@@ -62,7 +84,9 @@ def _load_country_data(filepath, locations_by_name, locations_by_id):
 
     return countries_by_code
 
-def _load_admin1_data(filepath, locations_by_name, locations_by_id, countries_by_code):
+def _load_admin1_data(
+    filepath, locations_by_name, locations_by_id, alt_names_by_id, countries_by_code
+):
     admin1_by_code = {}
 
     with open(filepath) as admin1_file:
@@ -82,7 +106,10 @@ def _load_admin1_data(filepath, locations_by_name, locations_by_id, countries_by
                 country_id=country['id'],
             )
 
-            for name in set([standard_name] + get_alt_punc_names(standard_name)):
+            for name in set(
+                standardize_loc_name(alt_name) for alt_name in
+                [standard_name] + get_alt_punc_names(standard_name) + alt_names_by_id[geoname_id]
+            ):
                 locations_by_name[name][geoname_id] = data
             assert geoname_id not in locations_by_id
             locations_by_id[geoname_id] = data
@@ -99,7 +126,8 @@ def _load_admin1_data(filepath, locations_by_name, locations_by_id, countries_by
     return admin1_by_code
 
 def _load_admin2_data(
-    filepath, locations_by_name, locations_by_id, countries_by_code, admin1_by_code
+    filepath, locations_by_name, locations_by_id, alt_names_by_id, countries_by_code,
+    admin1_by_code
 ):
     admin2_by_code = {}
 
@@ -123,7 +151,10 @@ def _load_admin2_data(
                 country_id=country['id'],
             )
 
-            for name in set([standard_name] + get_alt_punc_names(standard_name)):
+            for name in set(
+                standardize_loc_name(alt_name) for alt_name in
+                [standard_name] + get_alt_punc_names(standard_name) + alt_names_by_id[geoname_id]
+            ):
                 locations_by_name[name][geoname_id] = data
             assert geoname_id not in locations_by_id
             locations_by_id[geoname_id] = data
@@ -132,7 +163,8 @@ def _load_admin2_data(
     return admin2_by_code
 
 def _load_city_data(
-    filepath, locations_by_name, locations_by_id, countries_by_code, admin1_by_code, admin2_by_code
+    filepath, locations_by_name, locations_by_id, alt_names_by_id, countries_by_code,
+    admin1_by_code, admin2_by_code
 ):
     with open(filepath) as city_file:
         reader = csv.reader(city_file, dialect='excel-tab', quoting=csv.QUOTE_NONE)
@@ -163,9 +195,35 @@ def _load_city_data(
                 population=int(population),
             )
 
-            for name in set([standard_name] + get_alt_punc_names(standard_name)):
+            for name in set(
+                standardize_loc_name(alt_name) for alt_name in
+                [standard_name] + get_alt_punc_names(standard_name) + alt_names_by_id[geoname_id]
+            ):
                 locations_by_name[name][geoname_id] = data
             assert geoname_id not in locations_by_id
             locations_by_id[geoname_id] = data
 
+def _add_fixed_alt_names(locations_by_name):
+    for real_name, alt_names, resolution in (
+        (
+            'United States',
+            ('USA', 'U.S.A.', 'US', 'U.S.', 'the United States', 'United States of America'),
+            ResolutionTypes.COUNTRY
+        ),
+        ('United Kingdom', ('Great Britain', 'Britain', 'UK', 'U.K.'), ResolutionTypes.COUNTRY),
+        ('South Korea', ('Korea',), ResolutionTypes.COUNTRY),
+        ('North Korea', ('Korea',), ResolutionTypes.COUNTRY),
+        ('Netherlands', ('The Netherlands', 'Holland',), ResolutionTypes.COUNTRY),
+        ('New York City', ('NYC', 'N.Y.C.'), ResolutionTypes.CITY),
+    ):
+        locations = [
+            loc for loc in locations_by_name[standardize_loc_name(real_name)].itervalues()
+            if loc['resolution'] == resolution
+        ]
+        assert len(locations) == 1
+        location = locations[0]
 
+        for alt_name in alt_names:
+            if location['id'] in locations_by_name[standardize_loc_name(alt_name)]:
+                print 'Already have alternate name %s for %s' % (alt_name, real_name)
+            locations_by_name[standardize_loc_name(alt_name)][location['id']] = location

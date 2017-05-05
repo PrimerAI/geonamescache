@@ -79,8 +79,7 @@ def _load_main_data(filepath, alt_names_by_id):
                 continue
 
             alt_osm_names = [
-                name for name in loc_info['alternative_names'].split(',')
-                if all(ord(c) < 128 for c in name)
+                name for name in loc_info['alternative_names'].split(',') if _is_ascii(name)
             ]
             alt_wiki_names = alt_names_by_id[data['id']]
             alt_punc_name = get_alt_punc_names(loc_info['name'])
@@ -97,6 +96,9 @@ def _load_main_data(filepath, alt_names_by_id):
 
     return locations_by_name, locations_by_id
 
+def _is_ascii(string):
+    return all(ord(c) < 128 for c in string)
+
 def _get_resolution(data):
     for res_name, resolution in (
         (data['city'], ResolutionTypes.CITY),
@@ -110,7 +112,7 @@ def _get_resolution(data):
                 if resolution == ResolutionTypes.COUNTRY:
                     # There are some unusual results here; ignore them.
                     return None
-                if resolution == ResolutionTypes.CITY:
+                if resolution == ResolutionTypes.CITY and _is_ascii(data['city']):
                     # The city name seems generally more accurate, make the location name the
                     # city name.
                     data['name'] = data['city']
@@ -252,7 +254,7 @@ def _add_fixed_alt_names(locations_by_name):
     for real_name, alt_names, resolution in (
         (
             'United States of America',
-            ('USA', 'U.S.A.', 'US', 'U.S.', 'the United States'),
+            ('USA', 'U.S.A.', 'US', 'U.S.', 'United States', 'the United States'),
             ResolutionTypes.COUNTRY
         ),
         ('United Kingdom', ('Great Britain', 'Britain', 'UK', 'U.K.'), ResolutionTypes.COUNTRY),
@@ -260,6 +262,7 @@ def _add_fixed_alt_names(locations_by_name):
         ('North Korea', ('Korea',), ResolutionTypes.COUNTRY),
         ('The Netherlands', ('Netherlands', 'Holland',), ResolutionTypes.COUNTRY),
         ('New York City', ('NYC', 'N.Y.C.'), ResolutionTypes.CITY),
+        ("Cote d'Ivoire", ('Ivory Coast',), ResolutionTypes.COUNTRY),
     ):
         locations = [
             loc for loc in locations_by_name[standardize_loc_name(real_name)].itervalues()

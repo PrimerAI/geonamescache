@@ -190,7 +190,7 @@ def run(out_filename):
         if not locations_with_name:
             continue
 
-        if (i + 1) % 100 == 0:
+        if (i + 1) % 1000 == 0:
             print 'Search number', i
             print misses, hits
             # Write to file just in case job breaks

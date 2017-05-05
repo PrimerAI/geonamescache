@@ -24,6 +24,7 @@ def get_alt_punc_names(name):
         name.replace("-", " "),
         re.sub(r'^St ', 'St. ', name, flags=re.IGNORECASE),
         re.sub(r'^Saint ', 'St. ', name, flags=re.IGNORECASE),
+        re.sub(r'^The ', '', name, flags=re.IGNORECASE),
         name.split('(')[0].strip(),
         name.split(',')[0].strip(),
     ]

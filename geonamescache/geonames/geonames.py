@@ -215,6 +215,7 @@ def _add_fixed_alt_names(locations_by_name):
         ('North Korea', ('Korea',), ResolutionTypes.COUNTRY),
         ('Netherlands', ('The Netherlands', 'Holland',), ResolutionTypes.COUNTRY),
         ('New York City', ('NYC', 'N.Y.C.'), ResolutionTypes.CITY),
+        ('Ivory Coast', ("Cote d'Ivoire",), ResolutionTypes.COUNTRY),
     ):
         locations = [
             loc for loc in locations_by_name[standardize_loc_name(real_name)].itervalues()

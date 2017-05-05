@@ -8604,7 +8604,6 @@ CD.04.19	Kabinda	Sous-Region du Kabinda	215523
 CD.11.216279	Goma	Goma	216279
 CD.11.219056	Beni	Beni	219056
 CD.22.922772	Kolwezi City	Kolwezi City	922772
-CD.05.923173	Sous-Région du Haut-Shaba	Sous-Region du Haut-Shaba	923173
 CD.02.2310762	Ville de Zongo	Ville de Zongo	2310762
 CD.02.2312894	Ville de Mbandaka	Ville de Mbandaka	2312894
 CD.02.14	Equateur	Sous-Region de l' Equateur	2315861
@@ -8615,14 +8614,11 @@ CD.15.15	Haut Lomami	Haut-Lomami	7670778
 CD.14.16	Haut Katanga	Haut-Katanga	7670837
 CD.02.32	Nord Ubangi	Nord-Ubangi	7670932
 CD.02.36	Sud Ubangi	Sud-Ubangi	7731903
-CD.01.7731962	Plateaux	Plateaux	7731962
 CD.08.27	Lukaya	Lukaya	7731969
 CD.08.13	Cataractes District	Cataractes District	7731971
 CD.08.10	Bas Fleuve District	Bas Fleuve District	7731975
 CD.08.7731981	Matadi (city)	Matadi (city)	7731981
 CD.08.12	Boma (city)	Boma (city)	7731984
-CD.09.7910143	Tumba	Tumba	7910143
-CD.05.23	Kolwezi	Kolwezi	8051180
 CD.11.33	North Kivu	North Kivu	8260563
 CD.10.30	Maniema	Maniema	8260564
 CD.04.38	Tshilenge District	Tshilenge District	8260565
@@ -8632,20 +8628,11 @@ CD.06.21	Kinshasa Urban	Kinshasa Urban	8260568
 CD.11.8260598	Nyirangongo	Nyirangongo	8260598
 CD.11.8260604	Butembo	Butembo	8260604
 CD.11.8260605	Oicha	Oicha	8260605
-CD.03.8335010	Kananga City	Kananga City	8335010
 CD.18.8335011	Tshikapa City	Tshikapa City	8335011
-CD.05.9165800	Lubumbashi (city)	Lubumbashi (city)	9165800
 CD.06.9166122	Lukunga District	Lukunga District	9166122
 CD.06.9166123	Tshangu District	Tshangu District	9166123
-CD.05.9179186	Kalemie Ville	Kalemie Ville	9179186
-CD.05.9179188	Kipushi Ville	Kipushi Ville	9179188
-CD.05.9179189	Kongolo Ville	Kongolo Ville	9179189
-CD.05.9179191	Kambove Ville	Kambove Ville	9179191
-CD.05.9179195	Likasi	Likasi	9179195
 CD.12.9179197	Bukavu	Bukavu	9179197
 CD.06.9179198	Makala District	Makala District	9179198
-CD.05.9179199	Mutumba District	Mutumba District	9179199
-CD.03.9179202	Mutumba District	Mutumba District	9179202
 CD.12.9179463	Kalehe	Kalehe	9179463
 CD.10.9179465	Maniema	Maniema	9179465
 CD.12.9179476	Mwenga	Mwenga	9179476
@@ -8653,9 +8640,7 @@ CD.12.9179483	Fizi	Fizi	9179483
 CD.12.9179531	Kabare	Kabare	9179531
 CD.11.9179534	Masisi Territory	Masisi Territory	9179534
 CD.11.9179537	Rutshuru Territory	Rutshuru Territory	9179537
-CD.05.9179562	Kasaji	Kasaji	9179562
 CD.23.9179898	Ville de Kananga	Ville de Kananga	9179898
-CD.05.9179907	Manono	Manono	9179907
 CD.02.9212657	Akula	Akula	9212657
 CD.02.10376945	Tshuapa District	Tshuapa District	10376945
 CD.06.10400552	Funa	Funa	10400552
@@ -13097,7 +13082,6 @@ GE.67.614356	Gurjaanis Munitsip’alit’et’i	Gurjaanis Munitsip'alit'et'i	614
 GE.02.614378	Gulripshi district	Gulripshi district	614378
 GE.02.614407	Gudauta District	Gudauta District	614407
 GE.73.614450	Goris Munitsip’alit’et’i	Goris Munitsip'alit'et'i	614450
-GE.00.614519	Gldanskiy Rayon	Gldanskiy Rayon	614519
 GE.68.614573	Gardabnis Munitsip’alit’et’i	Gardabnis Munitsip'alit'et'i	614573
 GE.02.614611	Gali District	Gali District	614611
 GE.73.614792	Javis Munitsip’alit’et’i	Javis Munitsip'alit'et'i	614792
@@ -36062,14 +36046,11 @@ TJ.01.1220683	Rushanskiy Rayon	Rushanskiy Rayon	1220683
 TJ.03.1220797	Pendzhikentskiy Rayon	Pendzhikentskiy Rayon	1220797
 TJ.RR.1220854	Vahdat District	Vahdat District	1220854
 TJ.04.1220859	Oktyabr’skiy Rayon	Oktyabr'skiy Rayon	1220859
-TJ.00.1221088	Leninskiy Rayon	Leninskiy Rayon	1221088
 TJ.02.1221090	Muminobodskiy Rayon	Muminobodskiy Rayon	1221090
-TJ.00.1221249	Komsomolabadskiy Rayon	Komsomolabadskiy Rayon	1221249
 TJ.02.1221253	Bokhtarskiy Rayon	Bokhtarskiy Rayon	1221253
 TJ.02.1221320	Khovalingskiy Rayon	Khovalingskiy Rayon	1221320
 TJ.01.1221558	Darvozskiy Rayon	Darvozskiy Rayon	1221558
 TJ.02.1221646	Gozimalikskiy Rayon	Gozimalikskiy Rayon	1221646
-TJ.00.1221707	Gissarskiy Rayon	Gissarskiy Rayon	1221707
 TJ.04.1221873	Dushanbe	Dushanbe	1221873
 TJ.03.1222220	Ayninskiy Rayon	Ayninskiy Rayon	1222220
 TJ.03.1514816	Nohiyai Zafarobod	Nohiyai Zafarobod	1514816
@@ -37762,6 +37743,7 @@ UA.25.707557	Irshava Raion	Irshava Raion	707557
 UA.04.707607	Industrial’nyy Rayon	Industrial'nyy Rayon	707607
 UA.09.707751	Horodots’kyy Rayon	Horodots'kyy Rayon	707751
 UA.18.708178	Hrebinkivs’kyy Rayon	Hrebinkivs'kyy Rayon	708178
+UA.01.708337	Gorodishchenskiy Rayon	Gorodishchenskiy Rayon	708337
 UA.06.708378	Horodenkivs’kyy Rayon	Horodenkivs'kyy Rayon	708378
 UA.18.708752	Hlobyns’kyy Rayon	Hlobyns'kyy Rayon	708752
 UA.08.708876	Heniches’kyy Rayon	Heniches'kyy Rayon	708876

@@ -215,7 +215,10 @@ def run(out_filename):
             )
             top_population = locations_by_pop[0].get('population', 0)
             next_population = locations_by_pop[1].get('population', 0)
-            if top_population > 10 ** 6 and top_population > 3 * next_population:
+            if (
+                (top_population > 10 ** 6 and top_population > 3 * next_population) or
+                (top_population > 10 ** 5 and top_population > 6 * next_population)
+            ):
                 location = locations_by_pop[0]
                 resolved_locs[name] = (top_population, location['country'])
 

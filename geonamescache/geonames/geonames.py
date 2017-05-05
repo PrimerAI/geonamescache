@@ -216,6 +216,7 @@ def _add_fixed_alt_names(locations_by_name):
         ('Netherlands', ('The Netherlands', 'Holland',), ResolutionTypes.COUNTRY),
         ('New York City', ('NYC', 'N.Y.C.'), ResolutionTypes.CITY),
         ('Ivory Coast', ("Cote d'Ivoire",), ResolutionTypes.COUNTRY),
+        ('Venice', ("Venezia",), ResolutionTypes.CITY),
     ):
         locations = [
             loc for loc in locations_by_name[standardize_loc_name(real_name)].itervalues()
@@ -225,6 +226,4 @@ def _add_fixed_alt_names(locations_by_name):
         location = locations[0]
 
         for alt_name in alt_names:
-            if location['id'] in locations_by_name[standardize_loc_name(alt_name)]:
-                print 'Already have alternate name %s for %s' % (alt_name, real_name)
             locations_by_name[standardize_loc_name(alt_name)][location['id']] = location

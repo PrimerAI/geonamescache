@@ -3860,7 +3860,7 @@ YE.04	Muḩāfaz̧at Ḩaḑramawt	Muhafazat Hadramawt	75411
 YE.11	Dhamār	Dhamar	76183
 YE.03	Al Mahrah	Al Mahrah	78985
 YE.08	Al Hudaydah	Al Hudaydah	79416
-YE.20	Al Bayḑāʼ	Muhafazat al Bayda'	79838
+YE.20	Al Bayda Governorate	Al Bayda Governorate	79838
 YE.02	Aden	Aden	80412
 YE.01	Abyan	Abyan	80425
 YE.18	Aḑ Ḑāli‘	Ad Dali'	6201193

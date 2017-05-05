@@ -33,7 +33,7 @@ class LocationsSource(object):
     }
     """
 
-    def __init__(self, source='osm'):
+    def __init__(self, source='geonames'):
         assert source in ('osm', 'geonames')
         if source == 'osm':
             self._locations_by_name, self._locations_by_id = osm_names.load_data()

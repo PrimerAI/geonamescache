@@ -204,23 +204,29 @@ def _load_city_data(
             locations_by_id[geoname_id] = data
 
 def _add_fixed_alt_names(locations_by_name):
-    for real_name, alt_names, resolution in (
+    for real_name, alt_names, country, resolution in (
         (
             'United States',
             ('USA', 'U.S.A.', 'US', 'U.S.', 'the United States', 'United States of America'),
+            'United States',
             ResolutionTypes.COUNTRY
         ),
-        ('United Kingdom', ('Great Britain', 'Britain', 'UK', 'U.K.'), ResolutionTypes.COUNTRY),
-        ('South Korea', ('Korea',), ResolutionTypes.COUNTRY),
-        ('North Korea', ('Korea',), ResolutionTypes.COUNTRY),
-        ('Netherlands', ('The Netherlands', 'Holland',), ResolutionTypes.COUNTRY),
-        ('New York City', ('NYC', 'N.Y.C.'), ResolutionTypes.CITY),
-        ('Ivory Coast', ("Cote d'Ivoire",), ResolutionTypes.COUNTRY),
-        ('Venice', ("Venezia",), ResolutionTypes.CITY),
+        (
+            'United Kingdom',
+            ('Great Britain', 'Britain', 'UK', 'U.K.'),
+            'United Kingdom',
+            ResolutionTypes.COUNTRY
+        ),
+        ('South Korea', ('Korea',), 'South Korea', ResolutionTypes.COUNTRY),
+        ('North Korea', ('Korea',), 'North Korea', ResolutionTypes.COUNTRY),
+        ('Netherlands', ('The Netherlands', 'Holland',), 'Netherlands', ResolutionTypes.COUNTRY),
+        ('New York City', ('NYC', 'N.Y.C.'), 'United States', ResolutionTypes.CITY),
+        ('Ivory Coast', ("Cote d'Ivoire",), 'Ivory Coast', ResolutionTypes.COUNTRY),
+        ('Venice', ("Venezia",), 'Italy', ResolutionTypes.CITY),
     ):
         locations = [
             loc for loc in locations_by_name[standardize_loc_name(real_name)].itervalues()
-            if loc['resolution'] == resolution
+            if loc['country'] == country and loc['resolution'] == resolution
         ]
         assert len(locations) == 1
         location = locations[0]

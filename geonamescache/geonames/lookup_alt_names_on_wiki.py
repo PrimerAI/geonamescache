@@ -207,7 +207,9 @@ def run(out_filename):
 
         location = None
         if len(locations_with_name) == 1:
-            location = locations_with_name.values()[0]
+            candidate = locations_with_name.values()[0]
+            if candidate['population'] > 10000:
+                location = candidate
         else:
             locations_by_pop = sorted(
                 locations_with_name.values(), key=lambda loc: loc.get('population', 0),
@@ -217,7 +219,7 @@ def run(out_filename):
             next_population = locations_by_pop[1].get('population', 0)
             if (
                 (top_population > 10 ** 6 and top_population > 3 * next_population) or
-                (top_population > 10 ** 5 and top_population > 6 * next_population)
+                (top_population > 10 ** 5 and top_population > 4 * next_population)
             ):
                 location = locations_by_pop[0]
                 resolved_locs[name] = (top_population, location['country'])

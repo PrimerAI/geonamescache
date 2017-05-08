@@ -21,14 +21,15 @@ class LocationsSource(object):
             country_code: str,
             country_id: int,
             admin_level_1: Optional[str],
-            admin1_level_1_id: Optional[int],   # can be 0 if admin1 is not present in data set
+            admin1_level_1_id: Optional[int], # can be 0 if admin level 1 is not present in data set
             admin_level_2: Optional[str],
-            admin_level_2_id: Optional[int],   # can be 0 if admin2 is not present in data set
+            admin_level_2_id: Optional[int], # can be 0 if admin level 2 is not present in data set
             city: Optional[str],
             importance: Optional[float],
             population: Optional[int],
-            latitude: Optional[float],
-            longitude: Optional[float],
+            latitude: Optional[float], # can be missing for admin districts
+            longitude: Optional[float], # can be missing for admin districts
+            neighbor_country_ids: Optional[List[int]], # only available for countries
         }
     }
     """
@@ -69,4 +70,5 @@ class LocationsSource(object):
         return self._name_search(name)
 
     def get_location_by_id(self, id_):
-        return self._locations_by_id[id_].copy()
+        if id_ in self._locations_by_id:
+            return self._locations_by_id[id_].copy()

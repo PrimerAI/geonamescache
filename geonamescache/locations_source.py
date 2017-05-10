@@ -21,11 +21,12 @@ class LocationsSource(object):
             country_code: str,
             country_id: int,
             admin_level_1: Optional[str],
-            admin1_level_1_id: Optional[int], # can be 0 if admin level 1 is not present in data set
+            admin_level_1_id: Optional[int], # can be 0 if admin level 1 is not present in data set
             admin_level_2: Optional[str],
             admin_level_2_id: Optional[int], # can be 0 if admin level 2 is not present in data set
             city: Optional[str],
             importance: Optional[float],
+            estimated_importance: Optional[float],
             population: Optional[int],
             latitude: Optional[float], # can be missing for admin districts
             longitude: Optional[float], # can be missing for admin districts

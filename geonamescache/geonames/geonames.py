@@ -17,6 +17,7 @@ _DATA_FILES = {
     'admin_2': os.path.join(data_dir, 'admin2Codes.txt'),
     'city': os.path.join(data_dir, 'cities5000.txt'),
     'alt_wiki_names': os.path.join(data_dir, 'alt_wiki_names.json'),
+    'estimated_importance': os.path.join(data_dir, 'estimated_importance.json'),
 }
 
 _KEEP_FEATURE_CODES = {
@@ -46,6 +47,7 @@ def load_data():
     _add_alternate_names(
         _DATA_FILES['alt_wiki_names'], locations_by_name, locations_by_id
     )
+    _add_estimated_importances(_DATA_FILES['estimated_importance'], locations_by_id)
 
     del locations_by_name['']
 
@@ -256,6 +258,7 @@ def _add_fixed_alt_names(locations_by_name):
         ('Ivory Coast', ("Cote d'Ivoire",), 'Ivory Coast', ResolutionTypes.COUNTRY),
         # Admin level 1's
         ('Washington', ('Washington State',), 'United States', ResolutionTypes.ADMIN_1),
+        ('Washington, D.C.', ('District of Columbia',), 'United States', ResolutionTypes.ADMIN_1),
         ('California', ('Calif.',), 'United States', ResolutionTypes.ADMIN_1),
         # Cities
         ('New York City', ('NYC', 'N.Y.C.'), 'United States', ResolutionTypes.CITY),
@@ -274,3 +277,13 @@ def _add_fixed_alt_names(locations_by_name):
 
         for alt_name in alt_names:
             locations_by_name[standardize_loc_name(alt_name)][location['id']] = location
+
+def _add_estimated_importances(filepath, locations_by_id):
+    if not os.path.isfile(filepath):
+        return
+
+    with open(filepath) as importance_file:
+        estimated_importances = json.load(importance_file)
+
+    for id_, location in locations_by_id.iteritems():
+        location['estimated_importance'] = estimated_importances[str(id_)]

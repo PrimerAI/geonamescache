@@ -211,6 +211,7 @@ def run(out_filename):
             if candidate['population'] > 10000:
                 location = candidate
         else:
+            '''
             locations_by_pop = sorted(
                 locations_with_name.values(), key=lambda loc: loc.get('population', 0),
                 reverse=True
@@ -223,6 +224,16 @@ def run(out_filename):
             ):
                 location = locations_by_pop[0]
                 resolved_locs[name] = (top_population, location['country'])
+            '''
+            locations_by_importance = sorted(
+                locations_with_name.values(), key=lambda loc: loc['estimated_importance'],
+                reverse=True
+            )
+            top_importance = locations_by_importance[0]['estimated_importance']
+            next_importance = locations_by_importance[1]['estimated_importance']
+            if top_importance - next_importance > .15:
+                location = locations_by_importance[0]
+                resolved_locs[name] = (top_importance, location['country'])
 
         if not location:
             ambig_locs[name] = max(
@@ -244,7 +255,15 @@ def run(out_filename):
             continue
 
         hits += 1
-        alt_names_found[location['id']] = found_names
+        good_alt_names = []
+        for alt_name in found_names:
+            locations_with_alt_name = locations_by_name.get(alt_name, {})
+            if not any(
+                alt_location['estimated_importance'] + .15 > location['estimated_importance']
+                for alt_location in locations_with_alt_name.itervalues()
+            ):
+                good_alt_names.append(alt_name)
+        alt_names_found[location['id']] = good_alt_names
 
     with open(out_filename, 'w') as out:
         json.dump(alt_names_found, out)

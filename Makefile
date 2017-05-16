@@ -5,6 +5,7 @@ help:
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
 	@echo "clean-test - remove test and coverage artifacts"
+	@echo "dl_all - download geonames data"
 	@echo "dist - package"
 	@echo "docs - generate Sphinx HTML documentation, including API docs"
 	@echo "docs-release - generate and upload docs to PyPI"
@@ -12,26 +13,24 @@ help:
 	@echo "test-all - run tests on every Python version with tox"
 	@echo "release - package and upload a release"
 
-
-data/cities5000.zip:
+dl_cities:
 	curl -o data/cities5000.zip http://download.geonames.org/export/dump/cities5000.zip
-
-data/countryInfo.txt:
-	curl -o data/countryInfo.txt http://download.geonames.org/export/dump/countryInfo.txt
-
-data/admin1Codes.txt:
-	curl -o data/admin1Codes.txt http://download.geonames.org/export/dump/admin1CodesASCII.txt
-
-data/admin2Codes.txt:
-	curl -o data/admin2Codes.txt http://download.geonames.org/export/dump/admin2Codes.txt
-
-data/us_counties.txt:
-	curl -o data/us_counties.txt https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt
-
-data/cities5000.txt: data/cities5000.zip
 	unzip data/cities5000.zip -d data
 
-dl: data/cities5000.txt data/countryInfo.txt data/admin1Codes.txt data/us_counties.txt data/admin2Codes.txt
+dl_countries:
+	curl -o data/countryInfo.txt http://download.geonames.org/export/dump/countryInfo.txt
+
+dl_admin_1s:
+	curl -o data/admin1Codes.txt http://download.geonames.org/export/dump/admin1CodesASCII.txt
+
+dl_admin_2s:
+	curl -o data/admin2Codes.txt http://download.geonames.org/export/dump/admin2Codes.txt
+
+dl_all:
+	make dl_cities
+	make dl_countries
+	make dl_admin_1s
+	make dl_admin_2s
 
 clean: clean-build clean-pyc clean-test
 

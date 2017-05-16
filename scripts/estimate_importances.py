@@ -52,7 +52,23 @@ CITY            10189               .693                .667        36838
 ADMIN_LEVEL_1   1036                .721                .650        2021
 ADMIN_LEVEL_2   684                 .395                .358        11710
 
-COUNTRY - 241 with importances, 9 with default importances.
+The above numbers omit locations under MIN_POPULATION_THRESHOLD population.
+COUNTRY - 241 with found OSM importances, 9 with default importances.
+
+Notes:
+
+I also tried using features (for cities) such as
+
+    city population
+    city population / avg city population in the country
+    admin level 1 population / country population
+    city population / admin level 1 population
+
+but these were not useful.
+
+Also, because we are most concerned with the important locations, I weight the training points
+during training / evaluation according to [importance - .4] (where .4 is the lowest, baseline
+importance score).
 """
 
 MIN_POPULATION_THRESHOLD = 5 * 10 ** 3

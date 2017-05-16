@@ -1,4 +1,4 @@
-from primer_core.entities.locations.data_source.utils import ResolutionTypes
+from utils import ResolutionTypes
 
 
 # Map of (name, country, resolution) to list of alternate names, that we want to make sure
@@ -29,3 +29,4 @@ FIXED_ALTERNATE_NAMES = {
     ('Venice', 'Italy', ResolutionTypes.CITY): ('Venezia',),
     ('Los Angeles', 'United States', ResolutionTypes.CITY): ('LA', 'L.A.'),
 }
+

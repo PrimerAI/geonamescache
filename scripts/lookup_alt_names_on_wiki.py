@@ -1,18 +1,27 @@
 # -*- coding: utf-8 -*-
-import argparse
 import re
-import csv
+import json
 import pdb
+import requests
 import sys
 import traceback
 from collections import defaultdict
 
-import requests
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, CData, Comment
 
+from geonamescache.geonames.utils import ResolutionTypes, standardize_loc_name
+from geonamescache.geonames.geonames import load_data
+
+
+"""
+Fetches alternate names from wikipedia for the geonames data set.
+"""
+
 def text_attrs(base):
-    """Yield `(text, attr)` pairs for all descendants of `base`."""
+    """
+    Yield `(text, attr)` pairs for all descendants of `base`.
+    """
     def _text_attrs(obj, attrs):
         if type(obj) in (NavigableString, CData, Comment):
             yield (obj, dict(attrs))
@@ -29,8 +38,10 @@ def text_attrs(base):
 
 
 def css_style(raw_style):
-    """Return a dictionary of CSS `(property, value)` pairs from (potentially multiple)
-    "property:value; property:value" CSS styling strings."""
+    """
+    Return a dictionary of CSS `(property, value)` pairs from (potentially multiple)
+    "property:value; property:value" CSS styling strings.
+    """
     if isinstance(raw_style, basestring):
         raw_style = [raw_style]
 
@@ -40,36 +51,22 @@ def css_style(raw_style):
 
     return dict(pv.split(':') for pv in property_values)
 
-def _get_wikipedia(search_term, sub_term=None):
-    """If the `search_term` is *not* present in the cache, crawl Wikipedia and return a non-empty
+def _get_wikipedia(search_term):
+    """
+    If the `search_term` is *not* present in the cache, crawl Wikipedia and return a non-empty
     dictionary on success, an empty dictionary if no entry is found, and `None` if a `requests`
     error occurs. (The distinction between "not found" and a `requests` exception is made so that
-    the former can be cached while excluding the latter.)"""
+    the former can be cached while excluding the latter.)
+    """
 
-    if sub_term is None:
-        url = 'https://en.wikipedia.org/wiki/%s' % search_term.replace(' ', '_')
-        headers = {'User-agent': 'Mozilla/5.0'}
+    url = 'https://en.wikipedia.org/wiki/%s' % search_term.replace(' ', '_')
+    headers = {'User-agent': 'Mozilla/5.0'}
 
-        try:
-            req = requests.get(url, headers=headers, timeout=10)
-        except requests.RequestException, e:
-            # `requests` exceptions are handled externally so that the result is not cached.
-            return {}
-
-    else:
-        url = 'http://www.wikipedia.org/search-redirect.php'
-        search =  search_term + ', %s' % sub_term if sub_term else search_term
-        payload = {'family' : 'wikipedia',
-                   'search' : search,
-                   'language' : 'en'}
-
-        headers = {'User-agent': 'Mozilla/5.0'}
-
-        try:
-            req = requests.get(url, params=payload, headers=headers, timeout=10)
-        except requests.RequestException, e:
-            # `requests` exceptions are handled externally so that the result is not cached.
-            return {}
+    try:
+        req = requests.get(url, headers=headers, timeout=10)
+    except requests.RequestException, e:
+        # `requests` exceptions are handled externally so that the result is not cached.
+        return None
 
     soup = BeautifulSoup(req.text, 'lxml')
 
@@ -117,114 +114,175 @@ def _get_wikipedia(search_term, sub_term=None):
     else:
         redirected_from = None
 
+    names = [page_name]
     disambig_links = [a for a in soup.select('.hatnote .mw-disambig') if a.name == 'a']
-    names = [link.text for link in disambig_links]
+    names.extend([link.text for link in disambig_links])
 
     for element in soup.select('.hatnote'):
         redirects_here_match = re.match(r'"(.*)" redirects here', element.text)
         if redirects_here_match:
             names.append(redirects_here_match.groups()[0])
 
-    first_headings = soup('h1', id='firstHeading')
-    assert len(first_headings) == 1
-    names.append(first_headings[0].text)
-    names = set(name.split(',')[0].split('(')[0].strip() for name in names)
-    names.discard(unicode(search_term, 'utf8'))
+    names = set(fix_name(name) for name in names)
+    names.discard(standardize_loc_name(search_term))
 
     return {
         'concept' : page_name,
         'redirected_from' : redirected_from,
-        'all_names': [name.encode('utf8') for name in names],
+        'alt_names': list(names),
     }
+
+def fix_name(name):
+    name = name.split('(')[0].strip()
+    name = name.split(',')[0].strip()
+    return standardize_loc_name(name)
 
 def search(query):
     result = _get_wikipedia(query)
 
     if not result:
         if ' ' in query:
-            result = _get_wikipedia(query.replace(' ', '-'), sub_term='')
+            result = _get_wikipedia(query.replace(' ', '-'))
 
     if not result:
         if '(' in query:
             result = _get_wikipedia(query.split('(')[0].strip())
 
+    if not result:
+        if ',' in query:
+            result = _get_wikipedia(query.split(',')[0].strip())
+
     return result
 
-def check_alts():
+def get_adjusted_importance(location):
+    modifier = 0.
+    if location['resolution'] == ResolutionTypes.COUNTRY:
+        modifier = .2
+    elif location['resolution'] == ResolutionTypes.ADMIN_1:
+        modifier = -.15
+    elif location['resolution'] == ResolutionTypes.ADMIN_2:
+        modifier = -.2
+
+    return location['estimated_importance'] + modifier
+
+def run(out_filename):
     """
-    Compare the results of this crawler with the earlier results from Leonard's older version.
+    Find the alternate names of locations in the geonames data set and write them to an output file.
     """
-    missing_loc = 0
-    missing_alt = 0
-    extra_alt = 0
-    count = 0
+    locations_by_name, locations_by_id = load_data()
 
-    with open('data/Alternative_City_Names.tsv') as f:
-        reader = csv.reader(f, delimiter='\t')
+    # ID to list of alternative names
+    alt_names_found = {}
+    # name to biggest population of location with this name
+    ambig_locs = {}
+    # alternate name to location's name and population (if the alternate name collides with
+    # another location name)
+    ambig_alts = {}
+    # name to the top location's importance ond country
+    resolved_locs = {}
 
-        for row in reader:
-            assert len(row) == 2
-            name, alt_name = row
-            if count % 100 == 0:
-                print count, missing_loc, missing_alt, extra_alt
+    misses = dict((kind, 0) for kind in (
+        'ambiguous name', 'no wiki page found', 'no alt names found', 'ambiguous alt name'
+    ))
+    hits = 0
 
-            alt_name = unicode(alt_name, 'utf8')
-            result = search(name)
-            if not result:
-                print 'NO LOC FOUND!!!', name
-                missing_loc += 1
-                continue
+    for i, (name, locations_with_name) in enumerate(locations_by_name.iteritems()):
+        if (i + 1) % 1000 == 0:
+            print 'Search number', i
+            print misses, hits
+            break
 
-            found_names = result['all_names']
-            if alt_name not in found_names:
-                print 'Missing!!!!', name, alt_name, found_names
-                missing_alt += 1
-            if len(found_names) > 1:
-                print 'Extra names', name, alt_name, found_names
-                extra_alt += 1
+        if not locations_with_name:
+            continue
 
-            count += 1
+        location = None
+        if len(locations_with_name) == 1:
+            candidate = locations_with_name.values()[0]
+            if candidate['population'] > 10000:
+                location = candidate
+        else:
+            locations_by_importance = sorted(
+                locations_with_name.values(), key=lambda loc: get_adjusted_importance(loc),
+                reverse=True
+            )
+            top_importance = get_adjusted_importance(locations_by_importance[0])
+            next_importance = get_adjusted_importance(locations_by_importance[1])
+            if top_importance - next_importance > .12:
+                location = locations_by_importance[0]
+                resolved_locs[name] = (top_importance, location['country'])
 
-def run(in_filename, out_filename, has_header_row):
-    """
-    Find the alternate names of locations in the input file and write them to the output file.
-    """
-    count = 0
+        if not location:
+            ambig_locs[name] = max(
+                loc.get('population', 0) for loc in locations_with_name.values()
+            )
+            misses['ambiguous name'] += 1
+            continue
 
-    with open(in_filename) as f:
-        reader = csv.reader(f, delimiter='\t')
-        if has_header_row:
-            next(reader)
+        if location['name'] != name:
+            # only search for location's real name
+            continue
 
-        with open(out_filename, 'w') as out:
-            for row in reader:
-                assert len(row) == 23
-                name = row[0]
+        result = search(name)
+        if result is None:
+            print 'Warning: could not fetch results for ', name
+        if not result:
+            misses['no wiki page found'] += 1
+            continue
 
-                result = search(name)
-                if result is None:
-                    print 'Warning: could not fetch results for ', name
-                if not result:
+        found_names = result['alt_names']
+        if not found_names:
+            misses['no alt names found'] += 1
+            continue
+
+        hits += 1
+        importance = get_adjusted_importance(location)
+        good_alt_names = []
+
+        for alt_name in found_names:
+            skip_name = False
+            locations_with_alt_name = locations_by_name.get(alt_name, {})
+            for alt_location in locations_with_alt_name.itervalues():
+                if alt_location['id'] == location['id']:
                     continue
+                alt_importance = get_adjusted_importance(alt_location)
+                if alt_location['name'] == alt_name and alt_importance + .1 > importance:
+                    skip_name = True
+                    break
+                if alt_location['name'] != alt_name and alt_importance > importance + .1:
+                    skip_name = True
+                    break
 
-                found_names = result['all_names']
-                if not found_names:
-                    continue
+            if skip_name:
+                ambig_alts[alt_name] = (location['name'], location['population'])
+            else:
+                good_alt_names.append(alt_name)
 
-                out.write('\t'.join([name] + found_names) + '\n')
-                out.flush()
-                count += 1
-                if count % 100 == 0:
-                    print count
+        if not good_alt_names:
+            misses['ambiguous alt name'] += 1
+            continue
+
+        alt_names_found[location['id']] = good_alt_names
+
+    # main alternate names file
+    with open(out_filename, 'w') as out:
+        json.dump(alt_names_found, out)
+
+    # log cases we skipped
+    with open('ambig_names.txt', 'w') as out:
+        for loc in sorted(ambig_locs.iteritems(), key=lambda pair: pair[1], reverse=True):
+            out.write(str(loc) + '\n')
+    with open('ambig_alt_names.txt', 'w') as out:
+        for loc in sorted(ambig_alts.iteritems(), key=lambda info: info[-1], reverse=True):
+            out.write(str(loc) + '\n')
+    with open('resolved.txt', 'w') as out:
+        for loc in sorted(
+            resolved_locs.iteritems(), key=lambda pair: pair[1][0], reverse=True
+        ):
+            out.write(str(loc) + '\n')
 
 if __name__ == '__main__':
     try:
-        parser = argparse.ArgumentParser()
-        parser.add_argument('in_filename')
-        parser.add_argument('out_filename')
-        parser.add_argument('--header_row', action='store_true')
-        args = parser.parse_args()
-        run(args.in_filename, args.out_filename, args.header_row)
+        run(sys.argv[1])
     except:
         type, value, tb = sys.exc_info()
         traceback.print_exc()

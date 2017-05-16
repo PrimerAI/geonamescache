@@ -252,17 +252,21 @@ def _find_admin_id(locations_by_name, location, resolution):
 
 def _add_fixed_alt_names(locations_by_name):
     for real_name, alt_names, resolution in (
+        # Countries
         (
             'United States of America',
-            ('USA', 'U.S.A.', 'US', 'U.S.', 'United States', 'the United States'),
+            ('USA', 'U.S.A.', 'US', 'U.S.', 'United States', 'the United States', 'America'),
             ResolutionTypes.COUNTRY
         ),
         ('United Kingdom', ('Great Britain', 'Britain', 'UK', 'U.K.'), ResolutionTypes.COUNTRY),
         ('South Korea', ('Korea',), ResolutionTypes.COUNTRY),
         ('North Korea', ('Korea',), ResolutionTypes.COUNTRY),
         ('The Netherlands', ('Netherlands', 'Holland',), ResolutionTypes.COUNTRY),
-        ('New York City', ('NYC', 'N.Y.C.'), ResolutionTypes.CITY),
         ("Cote d'Ivoire", ('Ivory Coast',), ResolutionTypes.COUNTRY),
+        ('Palestinian Territory', ('Palestine',), ResolutionTypes.COUNTRY),
+        # Cities
+        ('New York City', ('NYC', 'N.Y.C.'), ResolutionTypes.CITY),
+        ('Los Angeles', ('LA', 'L.A.'), ResolutionTypes.CITY),
     ):
         locations = [
             loc for loc in locations_by_name[standardize_loc_name(real_name)].itervalues()

@@ -12,12 +12,8 @@ with io.open('README.rst', encoding='utf-8') as f:
 setup(
     name='geonamescache',
     version=__version__,
-    description='Geonames data for continents, cities and US states.',
+    description='Locations data',
     long_description=readme,
-    author='Ramiro Gómez',
-    author_email='code@ramiro.org',
-    url='https://github.com/yaph/geonamescache',
-    license='MIT',
     packages=find_packages(exclude=('tests', 'data', 'scripts')),
     package_data={'': ['LICENSE']},
     include_package_data=True,

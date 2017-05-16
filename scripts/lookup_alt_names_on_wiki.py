@@ -190,10 +190,9 @@ def run(out_filename):
     hits = 0
 
     for i, (name, locations_with_name) in enumerate(locations_by_name.iteritems()):
-        if i % 300 == 299:
+        if i % 1000 == 0:
             print 'Search number', i
             print counts, hits
-            break
 
         if not locations_with_name:
             continue

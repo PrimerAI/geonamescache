@@ -15,15 +15,18 @@ from geonamescache.geonames.geonames import load_data
 
 
 """
-Fetches alternate names from wikipedia for the geonames data set.
+Fetches alternate names from wikipedia for locations in the geonames data set.
 """
+
+MIN_POPULATION_THRESHOLD = 10 ** 4
+MIN_AMBIG_IMPORTANCE_THRESHOLD = .5
 
 def text_attrs(base):
     """
     Yield `(text, attr)` pairs for all descendants of `base`.
     """
     def _text_attrs(obj, attrs):
-        if type(obj) in (NavigableString, CData, Comment):
+        if isinstance(obj, (NavigableString, CData, Comment)):
             yield (obj, dict(attrs))
         else:
             attrs = attrs.copy()
@@ -46,41 +49,25 @@ def css_style(raw_style):
         raw_style = [raw_style]
 
     concatenated_style = u';'.join(raw_style)
-    property_values = filter(bool, map(unicode.strip,
-                                       concatenated_style.split(';')))
+    property_values = filter(bool, map(unicode.strip, concatenated_style.split(';')))
 
     return dict(pv.split(':') for pv in property_values)
 
-def _get_wikipedia(search_term):
+def is_valid_wiki_page(soup):
     """
-    If the `search_term` is *not* present in the cache, crawl Wikipedia and return a non-empty
-    dictionary on success, an empty dictionary if no entry is found, and `None` if a `requests`
-    error occurs. (The distinction between "not found" and a `requests` exception is made so that
-    the former can be cached while excluding the latter.)
+    Returns whether the given web page is a valid wikipedia content page.
     """
-
-    url = 'https://en.wikipedia.org/wiki/%s' % search_term.replace(' ', '_')
-    headers = {'User-agent': 'Mozilla/5.0'}
-
-    try:
-        req = requests.get(url, headers=headers, timeout=10)
-    except requests.RequestException, e:
-        # `requests` exceptions are handled externally so that the result is not cached.
-        return None
-
-    soup = BeautifulSoup(req.text, 'lxml')
-
     first_heading = soup('h1', {'id' : 'firstHeading'})
     if not first_heading:
-        return {}
+        return False
 
     page_name = first_heading[0].get_text()
     if page_name == 'Search results':
-        return {}
+        return False
 
     mw_content_text = soup('div', {'id' : 'mw-content-text'})
     if not mw_content_text:
-        return {}
+        return False
 
     paragraphs_text = []
     for paragraph in mw_content_text[0]('p', recursive=False):
@@ -102,35 +89,51 @@ def _get_wikipedia(search_term):
         paragraphs_text.append(paragraph_text)
 
     if not paragraphs_text:
-        return {}
+        return False
 
     first_paragraph = paragraphs_text[0]
     if not first_paragraph or re.findall(r'refer[s]? to:', first_paragraph):
-        return {}
+        return False
 
-    redirected_from = soup('span', **{'class' : 'mw-redirectedfrom'})
-    if redirected_from:
-        redirected_from = redirected_from[0].a['title']
-    else:
-        redirected_from = None
+    return True
 
-    names = [page_name]
+def get_wikipedia(search_term):
+    """
+    Get the alternate names from the wikipedia search term. Returns None if the request failed
+    or if there was no real page found.
+    """
+
+    url = 'https://en.wikipedia.org/wiki/%s' % search_term.replace(' ', '_')
+    headers = {'User-agent': 'Mozilla/5.0'}
+
+    try:
+        req = requests.get(url, headers=headers, timeout=10)
+    except requests.RequestException:
+        print 'Warning: could not fetch results for ', search_term
+        return None
+
+    soup = BeautifulSoup(req.text, 'lxml')
+    if not is_valid_wiki_page(soup):
+        return None
+
+    alt_names = []
+
+    first_heading = soup('h1', {'id' : 'firstHeading'})
+    page_name = first_heading[0].get_text()
+    alt_names.append(page_name)
+
     disambig_links = [a for a in soup.select('.hatnote .mw-disambig') if a.name == 'a']
-    names.extend([link.text for link in disambig_links])
+    alt_names.extend([link.text for link in disambig_links])
 
     for element in soup.select('.hatnote'):
         redirects_here_match = re.match(r'"(.*)" redirects here', element.text)
         if redirects_here_match:
-            names.append(redirects_here_match.groups()[0])
+            alt_names.append(redirects_here_match.groups()[0])
 
-    names = set(fix_name(name) for name in names)
-    names.discard(standardize_loc_name(search_term))
+    alt_names = set(fix_name(name) for name in alt_names)
+    alt_names.discard(fix_name(search_term))
 
-    return {
-        'concept' : page_name,
-        'redirected_from' : redirected_from,
-        'alt_names': list(names),
-    }
+    return list(alt_names)
 
 def fix_name(name):
     name = name.split('(')[0].strip()
@@ -138,19 +141,19 @@ def fix_name(name):
     return standardize_loc_name(name)
 
 def search(query):
-    result = _get_wikipedia(query)
+    result = get_wikipedia(query)
 
-    if not result:
+    if result is None:
         if ' ' in query:
-            result = _get_wikipedia(query.replace(' ', '-'))
+            result = get_wikipedia(query.replace(' ', '-'))
 
-    if not result:
+    if result is None:
         if '(' in query:
-            result = _get_wikipedia(query.split('(')[0].strip())
+            result = get_wikipedia(query.split('(')[0].strip())
 
-    if not result:
+    if result is None:
         if ',' in query:
-            result = _get_wikipedia(query.split(',')[0].strip())
+            result = get_wikipedia(query.split(',')[0].strip())
 
     return result
 
@@ -173,23 +176,23 @@ def run(out_filename):
 
     # ID to list of alternative names
     alt_names_found = {}
-    # name to biggest population of location with this name
+    # Name to biggest population of location with this name
     ambig_locs = {}
-    # alternate name to location's name and population (if the alternate name collides with
+    # Alternate name to location's name and population (if the alternate name collides with
     # another location name)
     ambig_alts = {}
-    # name to the top location's importance ond country
+    # Name to the top location's importance ond country
     resolved_locs = {}
 
-    misses = dict((kind, 0) for kind in (
+    counts = dict((kind, 0) for kind in (
         'ambiguous name', 'no wiki page found', 'no alt names found', 'ambiguous alt name'
     ))
     hits = 0
 
     for i, (name, locations_with_name) in enumerate(locations_by_name.iteritems()):
-        if (i + 1) % 1000 == 0:
+        if i % 300 == 299:
             print 'Search number', i
-            print misses, hits
+            print counts, hits
             break
 
         if not locations_with_name:
@@ -198,7 +201,7 @@ def run(out_filename):
         location = None
         if len(locations_with_name) == 1:
             candidate = locations_with_name.values()[0]
-            if candidate['population'] > 10000:
+            if candidate['population'] > MIN_POPULATION_THRESHOLD:
                 location = candidate
         else:
             locations_by_importance = sorted(
@@ -207,15 +210,20 @@ def run(out_filename):
             )
             top_importance = get_adjusted_importance(locations_by_importance[0])
             next_importance = get_adjusted_importance(locations_by_importance[1])
-            if top_importance - next_importance > .12:
-                location = locations_by_importance[0]
-                resolved_locs[name] = (top_importance, location['country'])
+            if (
+                top_importance > MIN_AMBIG_IMPORTANCE_THRESHOLD and
+                top_importance - next_importance > .12
+            ):
+                candidate = locations_by_importance[0]
+                if candidate['population'] > MIN_POPULATION_THRESHOLD:
+                    location = candidate
+                    resolved_locs[name] = (top_importance, location['country'])
 
         if not location:
             ambig_locs[name] = max(
                 loc.get('population', 0) for loc in locations_with_name.values()
             )
-            misses['ambiguous name'] += 1
+            counts['ambiguous name'] += 1
             continue
 
         if location['name'] != name:
@@ -224,21 +232,17 @@ def run(out_filename):
 
         result = search(name)
         if result is None:
-            print 'Warning: could not fetch results for ', name
+            counts['no wiki page found'] += 1
+            continue
+
         if not result:
-            misses['no wiki page found'] += 1
+            counts['no alt names found'] += 1
             continue
 
-        found_names = result['alt_names']
-        if not found_names:
-            misses['no alt names found'] += 1
-            continue
-
-        hits += 1
         importance = get_adjusted_importance(location)
         good_alt_names = []
 
-        for alt_name in found_names:
+        for alt_name in result:
             skip_name = False
             locations_with_alt_name = locations_by_name.get(alt_name, {})
             for alt_location in locations_with_alt_name.itervalues():
@@ -258,9 +262,10 @@ def run(out_filename):
                 good_alt_names.append(alt_name)
 
         if not good_alt_names:
-            misses['ambiguous alt name'] += 1
+            counts['ambiguous alt name'] += 1
             continue
 
+        hits += 1
         alt_names_found[location['id']] = good_alt_names
 
     # main alternate names file

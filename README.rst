@@ -1,27 +1,14 @@
 Geonames Cache
 ==============
 
-.. image:: https://img.shields.io/pypi/v/geonamescache.svg
-        :target: https://pypi.python.org/pypi/geonamescache
-.. image:: https://travis-ci.org/yaph/geonamescache.png?branch=master
-        :target: https://travis-ci.org/yaph/geonamescache
-
-A Python library that provides functions to retrieve names, ISO and FIPS codes of continents, countries as well as US states and counties as Python dictionaries. The country and city datasets also include population and geographic data.
-
-Geonames data is obtained from `GeoNames <http://www.geonames.org/>`_.
-
+Our library to maintain our locations data files, data format, and search interface. We currently have data from Geonames and from OpenStreetMaps.
 
 Installation
 ------------
 
-To install geonamescache, run: ::
+Run: ::
 
-    $ sudo pip install geonamescache
-
-Or, if necessary: ::
-
-    $ sudo easy_install geonamescache
-
+    $ python setup.py install
 
 Usage
 -----
@@ -30,57 +17,32 @@ A simple usage example:
 
 ::
 
-    import geonamescache
+    from geonamescache.geonames.data_source import DataSource
 
-    gc = geonamescache.GeonamesCache()
-    countries = gc.get_countries()
-    # print countries dictionary
-    print(countries)
-    # you really wanna do something more useful with the data...
+    data_source = DataSource()
+    print data_source.all_locations_search('Lebanon')
+    print data_source.get_location_by_id(6252001) # USA
 
 
-Methods
+Geonames data
 -------
 
-Currently geonamescache provides the following methods, that all return
-dictionaries with the requested data:
 
-- get_continents()
-- get_countries()
-- get_us_states()
-- get_cities()
-- get_countries_by_names()
-- get_us_states_by_names()
-- get_cities_by_name(name)
-- get_us_counties()
+Data from http://download.geonames.org/export/dump/. Using the cities5000 data set, this contains ~50000 cities, ~40000 admin level 2 districts, ~4000 admin level 1 districts, and ~250 countries. The above link also documents the fields provided for each type of location.
 
+We currently use Geonames as the data source in primer-core.
 
-Mappers
+OpenStreetMaps data
 -------
 
-The mappers module provides function(s) to map data properties. Currently you can create a mapper that maps country properties, e. g. the ``name`` property to the ``iso3`` property, to do so you'd write the following code:
+Data from https://github.com/OSMNames/OSMNames/releases/tag/v1.1. This contains the 100K most important locations according to counts of wikipedia links, including ~75000 cities, ~15000 admin level 2 districts, ~2000 admin level 1 districts, and ~250 countries. http://osmnames.org/download/ documents the fields provided for each location.
 
-::
+Note: this data source appears to be missing some key locations such as Vienna, Bangkok, Seoul, Cairo, etc. as well as some fields such as the admin level 1 of Chicago. (We think the missing locations is from having an incorrect importance score derived from wikipedia data, and that nominatim has more accurate data).
 
-    from geonamescache.mappers import country
-    mapper = country(from_key='name', to_key='iso3')
+Getting other data fields
+-------
 
-    iso3 = mapper('Spain') # iso3 is assigned ESP
+We also have scripts to 
 
-
-Contributing
-------------
-
-1. Fork `the repository`_ on GitHub
-2. Commit your changes to the **develop** branch
-3. Write test(s) for any new feature
-4. Push your changes and send a pull request
-
-If you wish to build the data from scratch, you can run the fabric file, fabfile.py. Before you can run this, you need to `create an account`_ in the Geonames system, then `activate your account`_ for API usage. Once you've created your account, you can run:
-
-fab dl  # Download the geonames data to the data directory
-GEONAMES_USER=<your-username-here> fab tojson  # Convert the downloaded data to json
-
-.. _`the repository`: http://github.com/yaph/geonamescache
-.. _`activate your account`: http://www.geonames.org/manageaccount
-.. _`create an account`: http://www.geonames.org/login
+1. fetch alternate names for locations from wikipedia
+2. compute estimated importance scores for locations for the Geonames data set

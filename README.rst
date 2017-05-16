@@ -24,16 +24,16 @@ A simple usage example:
     print data_source.get_location_by_id(6252001) # USA
 
 
-Main data sources
+Geonames data
 -------
 
-Geonames:
 
 Data from http://download.geonames.org/export/dump/. Using the cities5000 data set, this contains ~50000 cities, ~40000 admin level 2 districts, ~4000 admin level 1 districts, and ~250 countries. The above link also documents the fields provided for each type of location.
 
 We currently use Geonames as the data source in primer-core.
 
-OpenStreetMaps:
+OpenStreetMaps data
+-------
 
 Data from https://github.com/OSMNames/OSMNames/releases/tag/v1.1. This contains the 100K most important locations according to counts of wikipedia links, including ~75000 cities, ~15000 admin level 2 districts, ~2000 admin level 1 districts, and ~250 countries. http://osmnames.org/download/ documents the fields provided for each location.
 
@@ -42,4 +42,7 @@ Note: this data source appears to be missing some key locations such as Vienna, 
 Getting other data fields
 -------
 
-We also have scripts to fetch alternate names for locations from wikipedia, and to compute estimated importance scores for locations for the Geonames data set.
+We also have scripts to 
+
+1. fetch alternate names for locations from wikipedia
+2. compute estimated importance scores for locations for the Geonames data set

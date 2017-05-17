@@ -114,3 +114,4 @@ class DataSource(object):
     def get_location_by_id(self, id_):
         if id_ in self._locations_by_id:
             return self._locations_by_id[id_].copy()
+

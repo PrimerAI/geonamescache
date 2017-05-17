@@ -64,7 +64,6 @@ def _load_country_data(filepath):
             currency_code, currency_name, phone, postal_code_format, postal_code_regex, languages,
             geoname_id, neighbors, equivalent_fips_code
         ) in reader:
-            geoname_id = int(geoname_id)
             standard_name = standardize_loc_name(name)
             if not geoname_id or not standard_name:
                 continue
@@ -103,7 +102,6 @@ def _load_admin1_data(filepath, countries_by_code):
     with open(filepath) as admin1_file:
         reader = csv.reader(admin1_file, dialect='excel-tab', quoting=csv.QUOTE_NONE)
         for (full_admin1_code, name, ascii_name, geoname_id) in reader:
-            geoname_id = int(geoname_id)
             standard_name = standardize_loc_name(name)
             if not geoname_id or not standard_name:
                 continue
@@ -128,14 +126,6 @@ def _load_admin1_data(filepath, countries_by_code):
             _LOCATIONS_BY_ID[geoname_id] = data
             admin1_by_code[full_admin1_code] = data
 
-            if country_code == 'US':
-                # state abbreviations
-                assert len(admin1_code) == 2
-                _LOCATIONS_BY_NAME[standardize_loc_name(admin1_code)][geoname_id] = data
-                _LOCATIONS_BY_NAME[
-                    standardize_loc_name('%s.%s.' % (admin1_code[0], admin1_code[1]))
-                ][geoname_id] = data
-
     return admin1_by_code
 
 def _load_admin2_data(filepath, countries_by_code, admin1_by_code):
@@ -144,7 +134,6 @@ def _load_admin2_data(filepath, countries_by_code, admin1_by_code):
     with open(filepath) as admin2_file:
         reader = csv.reader(admin2_file, dialect='excel-tab', quoting=csv.QUOTE_NONE)
         for (full_admin2_code, name, ascii_name, geoname_id) in reader:
-            geoname_id = int(geoname_id)
             standard_name = standardize_loc_name(name)
             if not geoname_id or not standard_name:
                 continue
@@ -159,8 +148,8 @@ def _load_admin2_data(filepath, countries_by_code, admin1_by_code):
                 'country_code': country_code,
                 'country': country['name'],
                 'country_id': country['id'],
-                'admin_level_1': admin1['name'] if admin1 else '',
-                'admin_level_1_id': admin1['id'] if admin1 else 0,
+                'admin_level_1': admin1['name'] if admin1 else None,
+                'admin_level_1_id': admin1['id'] if admin1 else None,
                 'population': 0,
             }
 
@@ -185,7 +174,6 @@ def _load_city_data(filepath, countries_by_code, admin1_by_code, admin2_by_code)
             if feature_code.upper() not in _KEEP_FEATURE_CODES:
                 continue
 
-            geoname_id = int(geoname_id)
             standard_name = standardize_loc_name(name)
             if not geoname_id or not standard_name:
                 continue
@@ -200,10 +188,10 @@ def _load_city_data(filepath, countries_by_code, admin1_by_code, admin2_by_code)
                 'country_code': country_code,
                 'country': country['name'],
                 'country_id': country['id'],
-                'admin_level_1': admin1['name'] if admin1 else '',
-                'admin_level_1_id': admin1['id'] if admin1 else 0,
-                'admin_level_2': admin2['name'] if admin2 else '',
-                'admin_level_2_id': admin2['id'] if admin2 else 0,
+                'admin_level_1': admin1['name'] if admin1 else None,
+                'admin_level_1_id': admin1['id'] if admin1 else None,
+                'admin_level_2': admin2['name'] if admin2 else None,
+                'admin_level_2_id': admin2['id'] if admin2 else None,
                 'population': int(population),
                 'latitude': float(latitude),
                 'longitude': float(longitude),
@@ -231,10 +219,10 @@ def _add_alternate_names(filepath):
         alt_names_by_id = json.load(alt_names_file)
 
     for id_, alt_names in alt_names_by_id.iteritems():
-        location = _LOCATIONS_BY_ID[int(id_)]
+        location = _LOCATIONS_BY_ID[id_]
         if location['population'] >= _MIN_POPULATION_FOR_ALT_WIKI_NAMES:
             for alt_name in alt_names:
-                _LOCATIONS_BY_NAME[standardize_loc_name(alt_name)][int(id_)] = location
+                _LOCATIONS_BY_NAME[standardize_loc_name(alt_name)][id_] = location
 
 def _find_single_location(name, country, resolution):
     name = standardize_loc_name(name)

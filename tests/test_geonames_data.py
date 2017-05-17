@@ -1,6 +1,6 @@
-from primer_core.entities.locations.data_source.data_source import DataSource
-from primer_core.entities.locations.data_source.geonames import load_data
-from primer_core.entities.locations.data_source.utils import (
+from geonamescache.geonames.data_source import DataSource
+from geonamescache.geonames.geonames import load_data
+from geonamescache.geonames.utils import (
     get_alt_punc_names,
     ResolutionTypes,
     standardize_loc_name,
@@ -10,6 +10,11 @@ from primer_core.entities.locations.data_source.utils import (
 def test_data_source():
     data_source = DataSource()
 
+    _test_data_source_search(data_source)
+    _test_data_format(data_source._locations_by_id)
+    _test_data_numbers(data_source._locations_by_name, data_source._locations_by_id)
+
+def _test_data_source_search(data_source):
     # continent
     assert not data_source.all_locations_search('Africa')
 
@@ -54,9 +59,11 @@ def test_data_source():
     assert japan
     assert japan['resolution'] == ResolutionTypes.COUNTRY
 
-def test_data_format():
+def test_geonames_data_format():
     locations_by_name, locations_by_id = load_data()
+    _test_data_format(locations_by_id)
 
+def _test_data_format(locations_by_id):
     for location in locations_by_id.itervalues():
         _test_mandatory_fields(location, locations_by_id)
 
@@ -69,8 +76,7 @@ def test_data_format():
 
 def _test_mandatory_fields(location, locations_by_id):
     # id
-    assert isinstance(location['id'], int)
-    assert location['id'] > 0
+    assert isinstance(location['id'], basestring)
     # resolution
     assert location['resolution'] in (
         ResolutionTypes.CITY, ResolutionTypes.ADMIN_1, ResolutionTypes.ADMIN_2,
@@ -79,7 +85,7 @@ def _test_mandatory_fields(location, locations_by_id):
     # name
     assert location['name'] == standardize_loc_name(location['name'])
     # country
-    assert isinstance(location['country'], str)
+    assert isinstance(location['country'], basestring)
     # country_code
     assert len(location['country_code']) == 2
     assert location['country_code'].isupper()
@@ -100,7 +106,7 @@ def _test_country_fields(country):
 
 def _test_admin_2_fields(admin_2, locations_by_id):
     # admin_level_1
-    assert isinstance(admin_2['admin_level_1'], str)
+    assert isinstance(admin_2['admin_level_1'], basestring)
     # admin_level_1_id
     admin_1 = locations_by_id[admin_2['admin_level_1_id']]
     assert admin_1
@@ -108,16 +114,16 @@ def _test_admin_2_fields(admin_2, locations_by_id):
 
 def _test_city_fields(city, locations_by_id):
     # admin_level_1
-    assert isinstance(city['admin_level_1'], str)
+    assert city['admin_level_1'] is None or isinstance(city['admin_level_1'], basestring)
     # admin_level_1_id
-    if city['admin_level_1_id'] != 0:
+    if city['admin_level_1_id'] is not None:
         admin_1 = locations_by_id[city['admin_level_1_id']]
         assert admin_1
         assert admin_1['name'] == city['admin_level_1']
     # admin_level_2
-    assert isinstance(city['admin_level_2'], str)
+    assert city['admin_level_2'] is None or isinstance(city['admin_level_2'], basestring)
     # admin_level_2_id
-    if city['admin_level_2_id'] != 0:
+    if city['admin_level_2_id'] is not None:
         admin_2 = locations_by_id[city['admin_level_2_id']]
         assert admin_2
         assert admin_2['name'] == city['admin_level_2']
@@ -126,9 +132,11 @@ def _test_city_fields(city, locations_by_id):
     # longitude
     assert isinstance(city['longitude'], float)
 
-def test_geonames_data():
+def test_geonames_data_numbers():
     locations_by_name, locations_by_id = load_data()
+    _test_data_numbers(locations_by_name, locations_by_id)
 
+def _test_data_numbers(locations_by_name, locations_by_id):
     _test_populations(locations_by_id)
     _test_basic_alternate_names(locations_by_name)
     _test_basic_estimated_importances(locations_by_name, locations_by_id)
@@ -155,7 +163,7 @@ def _test_populations(locations_by_id):
 
 def _check_subpopulation(locations_by_id, sublocation, parent_id_fields):
     for parent_id_field in parent_id_fields:
-        if sublocation[parent_id_field] != 0:
+        if sublocation[parent_id_field] is not None:
             parent = locations_by_id[sublocation[parent_id_field]]
             if parent['resolution'] == ResolutionTypes.COUNTRY:
                 # we do not compute country populations - for very small countries, sometimes

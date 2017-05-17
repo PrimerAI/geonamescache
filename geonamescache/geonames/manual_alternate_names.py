@@ -23,10 +23,10 @@ FIXED_ALTERNATE_NAMES = {
     ('Washington', 'United States', ResolutionTypes.ADMIN_1): ('Washington State',),
     # Cities
     ('Washington, D.C.', 'United States', ResolutionTypes.CITY): (
-        'District of Columbia', 'Washington', 'DC', 'D.C.', 'Washington, DC'
+        'District of Columbia', 'Washington', 'DC', 'D.C.', 'Washington, DC', 'Washington D.C.',
+        'Washington DC'
     ),
     ('New York City', 'United States', ResolutionTypes.CITY): ('NYC', 'N.Y.C.'),
     ('Venice', 'Italy', ResolutionTypes.CITY): ('Venezia',),
     ('Los Angeles', 'United States', ResolutionTypes.CITY): ('LA', 'L.A.'),
 }
-

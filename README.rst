@@ -30,7 +30,9 @@ Geonames data
 
 Data from http://download.geonames.org/export/dump/. Using the cities5000 data set, this contains ~50000 cities, ~40000 admin level 2 districts, ~4000 admin level 1 districts, and ~250 countries. The above link also documents the fields provided for each type of location.
 
-We currently use Geonames as the data source in primer-core. See the README in geonamescache/geonames for how to manage the data.
+We currently use Geonames as the data source in primer-core.
+
+**See the README in geonamescache/geonames for how to manage the data.**
 
 OpenStreetMaps data
 -------

@@ -14,7 +14,7 @@ from utils import (
 _data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 _DATA_FILES = {
     'country': os.path.join(_data_dir, 'countryInfo.txt'),
-    'admin_1': os.path.join(_data_dir, 'admin1Codes.txt'),
+    'admin_1': os.path.join(_data_dir, 'admin1CodesASCII.txt'),
     'admin_2': os.path.join(_data_dir, 'admin2Codes.txt'),
     'city': os.path.join(_data_dir, 'cities5000.txt'),
     'alt_wiki_names': os.path.join(_data_dir, 'alt_wiki_names.json'),
@@ -59,12 +59,17 @@ def _load_country_data(filepath):
 
     with open(filepath) as country_file:
         reader = csv.reader(country_file, dialect='excel-tab', quoting=csv.QUOTE_NONE)
-        for (
-            iso, iso3, isonumeric, fips, name, capital, areakm2, population, continent_code, tld,
-            currency_code, currency_name, phone, postal_code_format, postal_code_regex, languages,
-            geoname_id, neighbors, equivalent_fips_code
-        ) in reader:
+        for row in reader:
+            if row[0].startswith('#'):
+                continue
+
+            (
+                iso, iso3, isonumeric, fips, name, capital, areakm2, population, continent_code,
+                tld, currency_code, currency_name, phone, postal_code_format, postal_code_regex,
+                languages, geoname_id, neighbors, equivalent_fips_code
+            ) = row
             standard_name = standardize_loc_name(name)
+            print standard_name, geoname_id
             if not geoname_id or not standard_name:
                 continue
 

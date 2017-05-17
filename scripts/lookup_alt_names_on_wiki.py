@@ -168,22 +168,13 @@ def get_adjusted_importance(location):
 
     return location['estimated_importance'] + modifier
 
-def run(out_filename):
+def run(out_filename, log_filename):
     """
     Find the alternate names of locations in the geonames data set and write them to an output file.
     """
     locations_by_name, locations_by_id = load_data()
 
-    # ID to list of alternative names
     alt_names_found = {}
-    # Name to biggest population of location with this name
-    ambig_locs = {}
-    # Alternate name to location's name and population (if the alternate name collides with
-    # another location name)
-    ambig_alts = {}
-    # Name to the top location's importance ond country
-    resolved_locs = {}
-
     counts = dict((kind, 0) for kind in (
         'ambiguous name', 'no wiki page found', 'no alt names found', 'ambiguous alt name'
     ))
@@ -216,12 +207,8 @@ def run(out_filename):
                 candidate = locations_by_importance[0]
                 if candidate['population'] > MIN_POPULATION_THRESHOLD:
                     location = candidate
-                    resolved_locs[name] = (top_importance, location['country'])
 
         if not location:
-            ambig_locs[name] = max(
-                loc.get('population', 0) for loc in locations_with_name.values()
-            )
             counts['ambiguous name'] += 1
             continue
 
@@ -255,9 +242,7 @@ def run(out_filename):
                     skip_name = True
                     break
 
-            if skip_name:
-                ambig_alts[alt_name] = (location['name'], location['population'])
-            else:
+            if not skip_name:
                 good_alt_names.append(alt_name)
 
         if not good_alt_names:
@@ -267,22 +252,27 @@ def run(out_filename):
         hits += 1
         alt_names_found[location['id']] = good_alt_names
 
-    # main alternate names file
     with open(out_filename, 'w') as out:
         json.dump(alt_names_found, out)
 
-    # log cases we skipped
-    with open('ambig_names.txt', 'w') as out:
-        for loc in sorted(ambig_locs.iteritems(), key=lambda pair: pair[1], reverse=True):
-            out.write(str(loc) + '\n')
-    with open('ambig_alt_names.txt', 'w') as out:
-        for loc in sorted(ambig_alts.iteritems(), key=lambda info: info[-1], reverse=True):
-            out.write(str(loc) + '\n')
-    with open('resolved.txt', 'w') as out:
-        for loc in sorted(
-            resolved_locs.iteritems(), key=lambda pair: pair[1][0], reverse=True
-        ):
-            out.write(str(loc) + '\n')
+    with open(log_filename, 'w') as out:
+        out.write('\t'.join(('Resolution', 'Name', 'Country', 'Population', 'Alt names')) + '\n')
+
+        results = sorted(
+            [
+                (locations_by_id[id_], alt_names)
+                for id_, alt_names in alt_names_found.iteritems()
+            ],
+            key=lambda pair: pair[0]['population'],
+            reverse=True,
+        )
+        for location, alt_names in results:
+            out.write(
+                '\t'.join((
+                    location['resolution'], location['name'], location['country'],
+                    str(location['population']), ','.join(alt_names)
+                )) + '\n'
+            )
 
 def compare(filepath1, filepath2):
     """
@@ -305,7 +295,7 @@ def print_extra(alt_names1, alt_names2, locations_by_id):
         if extra_names:
             loc = locations_by_id[id_]
             extras.append((
-                loc['resolution'], loc['name'], loc['country'], loc['estimated_importance'],
+                loc['resolution'], loc['name'], loc['country'], str(loc['population']),
                 extra_names
             ))
 
@@ -316,7 +306,7 @@ def print_extra(alt_names1, alt_names2, locations_by_id):
 
 if __name__ == '__main__':
     try:
-        run(sys.argv[1])
+        run(sys.argv[1], sys.argv[2])
     except:
         type, value, tb = sys.exc_info()
         traceback.print_exc()

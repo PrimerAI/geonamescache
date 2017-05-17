@@ -1,3 +1,54 @@
+# GeoNames.org Country Information																		
+# ================================																		
+#																		
+#																		
+# CountryCodes:																		
+# ============																		
+#																		
+# The official ISO country code for the United Kingdom is 'GB'. The code 'UK' is reserved.																		
+# 																		
+# A list of dependent countries is available here:																		
+# https://spreadsheets.google.com/ccc?key=pJpyPy-J5JSNhe7F_KxwiCA&hl=en 																		
+#																		
+#																		
+# The countrycode XK temporarily stands for Kosvo:																		
+# http://geonames.wordpress.com/2010/03/08/xk-country-code-for-kosovo/																		
+#																		
+#																		
+# CS (Serbia and Montenegro) with geonameId = 863038 no longer exists.																		
+# AN (the Netherlands Antilles) with geonameId = 3513447  was dissolved on 10 October 2010.																		
+#																		
+#																		
+# Currencies :																		
+# ============																		
+#																		
+# A number of territories are not included in ISO 4217, because their currencies are not per se an independent currency, 																		
+# but a variant of another currency. These currencies are:																		
+#																		
+# 1. FO : Faroese krona (1:1 pegged to the Danish krone)																		
+# 2. GG : Guernsey pound (1:1 pegged to the pound sterling)																		
+# 3. JE : Jersey pound (1:1 pegged to the pound sterling)																		
+# 4. IM : Isle of Man pound (1:1 pegged to the pound sterling)																		
+# 5. TV : Tuvaluan dollar (1:1 pegged to the Australian dollar).																		
+# 6. CK : Cook Islands dollar (1:1 pegged to the New Zealand dollar).																		
+#																		
+# The following non-ISO codes are, however, sometimes used: GGP for the Guernsey pound, 																		
+# JEP for the Jersey pound and IMP for the Isle of Man pound (http://en.wikipedia.org/wiki/ISO_4217)																		
+#																		
+#																		
+# A list of currency symbols is available here : http://forum.geonames.org/gforum/posts/list/437.page																		
+# another list with fractional units is here: http://forum.geonames.org/gforum/posts/list/1961.page																		
+#																		
+#																		
+# Languages :																		
+# ===========																		
+#																		
+# The column 'languages' lists the languages spoken in a country ordered by the number of speakers. The language code is a 'locale' 																		
+# where any two-letter primary-tag is an ISO-639 language abbreviation and any two-letter initial subtag is an ISO-3166 country code.																		
+#																		
+# Example : es-AR is the Spanish variant spoken in Argentina.																		
+#																		
+#ISO	ISO3	ISO-Numeric	fips	Country	Capital	Area(in sq km)	Population	Continent	tld	CurrencyCode	CurrencyName	Phone	Postal Code Format	Postal Code Regex	Languages	geonameid	neighbours	EquivalentFipsCode
 AD	AND	020	AN	Andorra	Andorra la Vella	468	84000	EU	.ad	EUR	Euro	376	AD###	^(?:AD)*(\d{3})$	ca	3041565	ES,FR	
 AE	ARE	784	AE	United Arab Emirates	Abu Dhabi	82880	4975593	AS	.ae	AED	Dirham	971			ar-AE,fa,en,hi,ur	290557	SA,OM	
 AF	AFG	004	AF	Afghanistan	Kabul	647500	29121286	AS	.af	AFN	Afghani	93			fa-AF,ps,uz-AF,tk	1149361	TM,CN,IR,TJ,PK,UZ	
@@ -248,3 +299,5 @@ YT	MYT	175	MF	Mayotte	Mamoudzou	374	159042	AF	.yt	EUR	Euro	262	#####	^(\d{5})$	f
 ZA	ZAF	710	SF	South Africa	Pretoria	1219912	49000000	AF	.za	ZAR	Rand	27	####	^(\d{4})$	zu,xh,af,nso,en-ZA,tn,st,ts,ss,ve,nr	953987	ZW,SZ,MZ,BW,NA,LS	
 ZM	ZMB	894	ZA	Zambia	Lusaka	752614	13460305	AF	.zm	ZMK	Kwacha	260	#####	^(\d{5})$	en-ZM,bem,loz,lun,lue,ny,toi	895949	ZW,TZ,MZ,CD,NA,MW,AO	
 ZW	ZWE	716	ZI	Zimbabwe	Harare	390580	11651858	AF	.zw	ZWL	Dollar	263			en-ZW,sn,nr,nd	878675	ZA,MZ,BW,ZM	
+CS	SCG	891	YI	Serbia and Montenegro	Belgrade	102350	10829175	EU	.cs	RSD	Dinar	381	#####	^(\d{5})$	cu,hu,sq,sr		AL,HU,MK,RO,HR,BA,BG	
+AN	ANT	530	NT	Netherlands Antilles	Willemstad	960	136197	NA	.an	ANG	Guilder	599			nl-AN,en,es		GP	

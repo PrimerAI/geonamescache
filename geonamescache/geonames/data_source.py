@@ -5,9 +5,11 @@ from utils import ResolutionTypes, standardize_loc_name
 
 
 _LOCATIONS_BY_NAME = None
+_LOCATIONS_BY_ID = None
 
-def _get_locations_by_name():
+def _get_locations_data():
     global _LOCATIONS_BY_NAME
+    global _LOCATIONS_BY_ID
 
     if _LOCATIONS_BY_NAME is None:
         data_filepath = os.path.join(
@@ -16,7 +18,12 @@ def _get_locations_by_name():
         with open(data_filepath) as f:
             _LOCATIONS_BY_NAME = json.load(f)
 
-    return _LOCATIONS_BY_NAME
+        _LOCATIONS_BY_ID = {}
+        for locations_with_name in _LOCATIONS_BY_NAME.itervalues():
+            for id_, location in locations_with_name.iteritems():
+                _LOCATIONS_BY_ID[id_] = location
+
+    return _LOCATIONS_BY_NAME, _LOCATIONS_BY_ID
 
 
 class DataSource(object):
@@ -33,27 +40,38 @@ class DataSource(object):
 
     {
         id: {
-            id: str,                    # Globally unique ID
-            resolution: str,            # One of ResolutionTypes.{CITY, ADMIN_1, ADMIN_2, COUNTRY}
-            name: str,                  # Main name
-            country: str,               # Country name
-            country_code: str,          # 2 letter country code
-            country_id: str,            # Country ID 
-            admin_level_1: Optional[str],       # Admin 1 name (only if this is a city or admin_2)
-            admin_level_1_id: Optional[str],    # Admin 1 ID (only if this is a city or admin_2)
-            admin_level_2: Optional[str],       # Admin 2 name (only if this is a city)
-            admin_level_2_id: Optional[str],    # Admin 2 ID (only if this is a city)
-            population: int,                    # Population. This is provided for cities and
-                                                # countries (although it can be 0 for small
-                                                # cities). This is calculated for admin districts
-                                                # according to the sum of the populations of its
-                                                # cities.
-            estimated_importance: float,        # Estimated importance score for a location
-                                                # The scale is [0 - 1].
-            latitude: Optional[float],          # Only available for cities right now
-            longitude: Optional[float],         # Only available for cities right now
-            neighbor_country_ids: Optional[List[int]],  # IDs of neighboring countries
-                                                        # Only available for countries
+            id: unicode,                            # Globally unique ID
+            resolution: str,                        # One of ResolutionTypes.
+                                                    # {CITY, ADMIN_1, ADMIN_2, COUNTRY}
+            name: unicode,                          # Main name
+            
+            country: unicode,                       # Country name
+            country_code: unicode,                  # 2 letter country code
+            country_id: unicode,                    # Country ID 
+            
+            admin_level_1: Optional[unicode],       # Admin 1 name
+                                                    # (only if this is a city or admin_level_2)
+            admin_level_1_id: Optional[unicode],    # Admin 1 ID
+                                                    # (only if this is a city or admin_level_2)
+                                                    
+            admin_level_2: Optional[unicode],       # Admin 2 name (only if this is a city)
+            admin_level_2_id: Optional[unicode],    # Admin 2 ID (only if this is a city)
+            
+            population: int,                        # Population. This is provided for cities and
+                                                    # countries (although it can be 0 for small
+                                                    # cities). This is calculated for admin
+                                                    # districts according to the sum of the
+                                                    # populations of its cities.
+                                                
+            estimated_importance: float,            # Estimated importance score for a location
+                                                    # The scale is [0 - 1].
+                                                
+            latitude: Optional[float],              # Only available for cities right now
+            longitude: Optional[float],             # Only available for cities right now
+            
+            neighbor_country_ids: Optional[List[unicode]],
+                                                    # IDs of neighboring countries
+                                                    # Only available for countries
         }
     }
     
@@ -75,11 +93,7 @@ class DataSource(object):
     """
 
     def __init__(self):
-        self._locations_by_name = _get_locations_by_name()
-        self._locations_by_id = {}
-        for locations_with_name in self._locations_by_name.itervalues():
-            for id_, location in locations_with_name.iteritems():
-                self._locations_by_id[id_] = location
+        self._locations_by_name, self._locations_by_id = _get_locations_data()
 
     def _name_search(self, name, resolution=None):
         name = standardize_loc_name(name)

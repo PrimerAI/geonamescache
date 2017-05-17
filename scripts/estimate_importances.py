@@ -535,16 +535,21 @@ def print_diffs(importance_filepath_1, importance_filepath_2):
         importance_1 = json.load(f)
     with open(importance_filepath_2) as f:
         importance_2 = json.load(f)
-    assert set(importance_1.keys()) == set(importance_2.keys())
     _, locations_by_id = geonames.load_data()
 
-    diffs = [(id_, importance_1[id_], importance_2[id_]) for id_ in importance_1]
+    diffs = [
+        (id_, importance_1.get(id_, 0.), importance_2.get(id_, 0.))
+        for id_ in set(importance_1.keys() + importance_2.keys())
+    ]
     diffs.sort(key=lambda info: abs(info[1] - info[2]), reverse=True)
     for id_, i1, i2 in diffs:
         if abs(i1 - i2) < .1:
             break
 
-        location = locations_by_id[int(id_)]
+        if id_ not in locations_by_id:
+            print id_
+            continue
+        location = locations_by_id[id_]
         print location['resolution'], location['name'], location['country'], i1, i2
 
 if __name__ == '__main__':
@@ -555,7 +560,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     try:
-        run(args.osm_filepath, args.output_filepath, args.plot)
+        #run(args.osm_filepath, args.output_filepath, args.plot)
+        print_diffs(args.osm_filepath, args.output_filepath)
     except:
         type, value, tb = sys.exc_info()
         traceback.print_exc()

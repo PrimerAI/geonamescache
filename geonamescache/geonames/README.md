@@ -71,3 +71,11 @@ We need to take several steps to generate the full data set from Geonames (runni
     python setup.py install
     py.test tests/test_geonames_data.py
     ```
+    
+## Moving code to primer_core
+
+Our locations code is currently in primer_core. To move an updated version of the data into primer_core, move the following files from this directory into `primer_core/entities/locations/data_source/`
+
+    data_source.py
+    utils.py
+    data/geonames_all.json

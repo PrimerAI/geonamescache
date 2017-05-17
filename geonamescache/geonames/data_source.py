@@ -74,12 +74,6 @@ class DataSource(object):
         
     """
 
-    CONTINENTS = {
-        u'Antarctica', u'North America', u'South America', u'Central America', u'Oceania',
-        u'Africa', u'Asia', u'Europe', u'EU', u'Middle East'
-    }
-    OCEANS = {u'Atlantic', u'Pacific', u'Indian', u'Southern', u'Arctic'}
-
     def __init__(self):
         self._locations_by_name = _get_locations_by_name()
         self._locations_by_id = {}
@@ -89,8 +83,6 @@ class DataSource(object):
 
     def _name_search(self, name, resolution=None):
         name = standardize_loc_name(name)
-        if name in DataSource.CONTINENTS or name in DataSource.OCEANS:
-            return {}
         return {
             id_: loc.copy() for id_, loc in self._locations_by_name.get(name, {}).iteritems()
             if not resolution or loc['resolution'] == resolution

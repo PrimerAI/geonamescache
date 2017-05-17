@@ -21,6 +21,7 @@ FIXED_ALTERNATE_NAMES = {
     ('Ivory Coast', 'Ivory Coast', ResolutionTypes.COUNTRY): ("Cote d'Ivoire",),
     # Admin level 1's
     ('Washington', 'United States', ResolutionTypes.ADMIN_1): ('Washington State',),
+    ('New York', 'United States', ResolutionTypes.ADMIN_1): ('NY', 'N.Y.'),
     # Cities
     ('Washington, D.C.', 'United States', ResolutionTypes.CITY): (
         'District of Columbia', 'Washington', 'DC', 'D.C.', 'Washington, DC', 'Washington D.C.',

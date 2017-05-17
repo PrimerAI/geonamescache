@@ -284,6 +284,36 @@ def run(out_filename):
         ):
             out.write(str(loc) + '\n')
 
+def compare(filepath1, filepath2):
+    """
+    Prints the difference between two files of alternate names.
+    """
+    with open(filepath1) as file1:
+        alt_names1 = json.load(file1)
+    with open(filepath2) as file2:
+        alt_names2 = json.load(file2)
+
+    _, locations_by_id = load_data()
+
+    print_extra(alt_names1, alt_names2, locations_by_id)
+    print_extra(alt_names2, alt_names1, locations_by_id)
+
+def print_extra(alt_names1, alt_names2, locations_by_id):
+    extras = []
+    for id_, alt_names in alt_names1.iteritems():
+        extra_names = [name for name in alt_names if name not in alt_names2.get(id_, [])]
+        if extra_names:
+            loc = locations_by_id[id_]
+            extras.append((
+                loc['resolution'], loc['name'], loc['country'], loc['estimated_importance'],
+                extra_names
+            ))
+
+    print '##########################'
+    extras.sort(key=lambda info: info[3], reverse=True)
+    for extra in extras:
+        print extra
+
 if __name__ == '__main__':
     try:
         run(sys.argv[1])

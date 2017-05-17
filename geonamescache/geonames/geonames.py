@@ -69,7 +69,6 @@ def _load_country_data(filepath):
                 languages, geoname_id, neighbors, equivalent_fips_code
             ) = row
             standard_name = standardize_loc_name(name)
-            print standard_name, geoname_id
             if not geoname_id or not standard_name:
                 continue
 

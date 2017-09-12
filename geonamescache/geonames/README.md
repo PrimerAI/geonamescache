@@ -25,7 +25,7 @@ We need to take several steps to generate the full data set from Geonames (runni
     - countryInfo.txt
     - admin1CodesASCII.txt
     - admin2Codes.txt
-    - cities5000.txt (could use cities1000.txt instead)
+    - cities50000.txt (could use cities10000.txt instead)
     
     Note: in the premium data set both 'London' and 'City of London' appear as entries, even though they refer to the same city. We manually deleted 'City of London' in the version saved here on github.
     

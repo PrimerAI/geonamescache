@@ -58,7 +58,7 @@ We need to take several steps to generate the full data set from Geonames (runni
     Run
     
     ```
-    python scripts/create_single_json.py geonamescache/geonames/data/geonames_all.py
+    python scripts/create_single_json.py geonamescache/geonames/data/geonames_all.json
     ```
     
     This loads and processes the full data set, and writes it to a file so that future uses of the code will only need to load the data from a single file.

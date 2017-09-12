@@ -1,6 +1,6 @@
 # Geonames data
 
-Geonames is a public data set described by http://www.geonames.org/about.html. Using the cities5000 data set, it contains ~50,000 cities, ~40,000 admin level 2 districts, ~4,000 admin level 1 districts, and ~250 countries. For each city, the data has an unique ID, name, country code, feature code (type of location), latitude / longitude, and the admin districts (levels 1 - 4) it belongs to.
+Geonames is a public data set described by http://www.geonames.org/about.html. Using the cities50000 data set, it contains ~50,000 cities, ~40,000 admin level 2 districts, ~4,000 admin level 1 districts, and ~250 countries. For each city, the data has an unique ID, name, country code, feature code (type of location), latitude / longitude, and the admin districts (levels 1 - 4) it belongs to.
 
 ## Using the data
 
